@@ -8,28 +8,24 @@ namespace TestApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomerController : ControllerBase
+    public class StageController : ControllerBase
     {
         private readonly IConfiguration _config;
 
-        public CustomerController(IConfiguration config)
+        public StageController(IConfiguration config)
         {
             _config = config;
         }
 
         [HttpGet]
-        public async Task<ResponseCust> GetCustomerAsync()
+        public async Task<ResponseStage> GetStageAsync()
         {
-            var res = new List<Customer>();
-            var response = new ResponseCust(); 
+            var res = new List<Stage>();
+            var response = new ResponseStage();
             var connstr = _config.GetValue<string>("ConnectionStrings:DefaultConnection");
 
             SqlConnection conn = new SqlConnection(connstr);
-            var query = " SELECT A.AP_REGNO, A.CU_NAME, B.GENDERDESC 'CU_GENDER', A.CU_ALAMAT, A.CU_KTP, C.PROPERTYNAME 'CU_PROP', D.AREANAME 'CU_AREA' " +
-                        " FROM CUSTOMER A "+
-                        " LEFT JOIN RFGENDER B ON(B.GENDERCODE = A.CU_GENDER) "+
-                        " LEFT JOIN RFPROPERTY C ON(C.PROPERTYID = A.CU_PROP) "+
-                        " LEFT JOIN RFAREA D ON(D.AREAID = A.cu_AREA) ";
+            var query = " SELECT * FROM ENUMSTAGE ";
 
             SqlCommand cmd = new SqlCommand(query, conn);
             SqlDataAdapter adapter = new SqlDataAdapter(cmd);
@@ -38,15 +34,10 @@ namespace TestApp.Controllers
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                var res2 = new Customer
+                var res2 = new Stage
                 {
-                    ApRegno = dt.Rows[i]["AP_REGNO"].ToString(),
-                    Name = dt.Rows[i]["CU_NAME"].ToString(),
-                    Gender = dt.Rows[i]["CU_GENDER"].ToString(),
-                    Alamat = dt.Rows[i]["CU_ALAMAT"].ToString(),
-                    Ktp = dt.Rows[i]["CU_KTP"].ToString(),
-                    Prop = dt.Rows[i]["CU_PROP"].ToString(),
-                    Area = dt.Rows[i]["CU_AREA"].ToString()
+                    StageId = dt.Rows[i]["STAGE"].ToString(),
+                    StageDesc = dt.Rows[i]["STAGEDESC"].ToString()
                 };
                 res.Add(res2);
             }
@@ -55,38 +46,29 @@ namespace TestApp.Controllers
             return response;
         }
 
-        [HttpGet("{regno}")]
-        public async Task<Customer> GetCustomerByIdAsync(string regno)
+        [HttpGet("{stage}")]
+        public async Task<Stage> GetStageByIdAsync(string stage)
         {
-            var res = new Customer();
+            var res = new Stage();
             var connstr = _config.GetValue<string>("ConnectionStrings:DefaultConnection");
 
             SqlConnection conn = new SqlConnection(connstr);
-            var query = " SELECT A.AP_REGNO, A.CU_NAME, B.GENDERDESC 'CU_GENDER', A.CU_ALAMAT, A.CU_KTP, C.PROPERTYNAME 'CU_PROP', D.AREANAME 'CU_AREA' " +
-                        " FROM CUSTOMER A " +
-                        " LEFT JOIN RFGENDER B ON(B.GENDERCODE = A.CU_GENDER) " +
-                        " LEFT JOIN RFPROPERTY C ON(C.PROPERTYID = A.CU_PROP) " +
-                        " LEFT JOIN RFAREA D ON(D.AREAID = A.cu_AREA) " +
-                        " WHERE A.AP_REGNO = '" + regno + "' ";
+            var query = " SELECT * FROM ENUMSTAGE " +
+                        " WHERE STAGE = '" + stage + "' ";
 
             SqlCommand cmd = new SqlCommand(query, conn);
             SqlDataAdapter adapter = new SqlDataAdapter(cmd);
             DataTable dt = new DataTable();
             adapter.Fill(dt);
 
-            res.ApRegno = dt.Rows[0]["AP_REGNO"].ToString();
-            res.Name = dt.Rows[0]["NAMA"].ToString();
-            res.Gender = dt.Rows[0]["CU_GENDER"].ToString();
-            res.Alamat = dt.Rows[0]["CU_ALAMAT"].ToString();
-            res.Ktp = dt.Rows[0]["CU_NAME"].ToString();
-            res.Prop = dt.Rows[0]["CU_PROP"].ToString();
-            res.Area = dt.Rows[0]["CU_AREA"].ToString();
+            res.StageId = dt.Rows[0]["STAGE"].ToString();
+            res.StageDesc = dt.Rows[0]["STAGEDESC"].ToString();
 
             return res;
         }
 
-        [HttpDelete("{regno}")]
-        public async Task<string> DeleteCustomerAsync(string regno)
+        [HttpDelete("{stage}")]
+        public async Task<string> DeleteStageAsync(string stage)
         {
             try
             {
@@ -95,7 +77,7 @@ namespace TestApp.Controllers
                 var connstr = _config.GetValue<string>("ConnectionStrings:DefaultConnection");
 
                 SqlConnection conn = new SqlConnection(connstr);
-                var query = "DELETE FROM CUSTOMER WHERE AP_REGNO = '" + regno + "'";
+                var query = "DELETE FROM ENUMSTAGE WHERE STAGE = '" + stage + "'";
 
                 //var conn = new SqlConnection(connstr);
                 conn.Open();
@@ -113,7 +95,7 @@ namespace TestApp.Controllers
         }
 
         [HttpPut]
-        public async Task<string> UpdateCustomerAsync(Customer model)
+        public async Task<string> UpdateStageAsync(Stage model)
         {
             try
             {
@@ -122,7 +104,7 @@ namespace TestApp.Controllers
                 var connstr = _config.GetValue<string>("ConnectionStrings:DefaultConnection");
 
                 SqlConnection conn = new SqlConnection(connstr);
-                var query = "UPDATE CUSTOMER SET CU_NAME='"+model.Name+"', CU_GENDER='"+model.Gender+"', CU_ALAMAT='"+model.Alamat+"', CU_KTP='"+model.Ktp+"', CU_PROP='"+model.Prop+"', CU_AREA='"+model.Area+"' WHERE AP_REGNO = '" + model.ApRegno + "'";
+                var query = "UPDATE ENUMSTAGE SET STAGEDESC='" + model.StageDesc + "' WHERE STAGE = '" + model.StageId + "'";
 
                 //var conn = new SqlConnection(connstr);
                 conn.Open();
@@ -140,7 +122,7 @@ namespace TestApp.Controllers
         }
 
         [HttpPost]
-        public async Task<string> AddCustomerAsync(string nama, string gender, string alamat, string ktp, string property, string area)
+        public async Task<string> AddStageAsync(Stage model)
         {
             try
             {
@@ -149,7 +131,7 @@ namespace TestApp.Controllers
                 var connstr = _config.GetValue<string>("ConnectionStrings:DefaultConnection");
 
                 SqlConnection conn = new SqlConnection(connstr);
-                var query = "INSERT INTO CUSTOMER VALUES('" + Guid.NewGuid().ToString() + "','" + nama + "','" + gender + "','" + alamat + "','" + ktp + "','" + property + "','" + area + "')";
+                var query = "INSERT INTO CUSTOMER VALUES('" + model.StageId + "','" + model.StageDesc + "')";
 
                 //var conn = new SqlConnection(connstr);
                 conn.Open();

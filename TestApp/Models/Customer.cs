@@ -11,7 +11,7 @@ public class Customer
     public string Area { get; set; }
 }
 
-public class ResponseBase
+public class ResponseCust
 {
     public List<Customer> Data { get; set; }
 }
